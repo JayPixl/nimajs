@@ -4,3 +4,7 @@ node_modules
 tsconfig.json
 nima-test
 dev.js
+.gitignore
+.prettierignore
+CONTRIBUTING.md
+tsconfig.json

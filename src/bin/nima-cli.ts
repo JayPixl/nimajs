@@ -91,7 +91,7 @@ try {
             const watcher = chokidar.watch(inputGlob, {
                 persistent: true,
                 ignoreInitial: true,
-                ignored: ["node_modules", "**/nima-engine.*"],
+                ignored: ["node_modules/**/*.*", "**/nima-engine.*"],
             })
 
             let refreshCount: number = 0

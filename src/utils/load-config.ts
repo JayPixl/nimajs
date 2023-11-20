@@ -17,7 +17,9 @@ const loadConfig: () => Promise<{
 
     let configDir
     try {
-        const res = await glob("**/nima.config.{ts,js,json,mjs}")
+        const res = await glob("**/nima.config.{ts,js,json,mjs}", {
+            ignore: "node_modules/**/*.*",
+        })
         if (res.length === 0) {
             throw new NimaError(
                 "No config file found!",

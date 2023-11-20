@@ -16,7 +16,9 @@ export const startEngine: (
     try {
         const { absoluteModuleRoot } = getRoot()
         const timestamp = Date.now()
-        const tsMode = (await glob("**/*.{ts,tsx}")).length !== 0
+        const tsMode =
+            (await glob("**/*.{ts,tsx}", { ignore: "node_modules/**/*.*" }))
+                .length !== 0
 
         let template = (
             !tsMode

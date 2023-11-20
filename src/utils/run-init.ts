@@ -14,18 +14,22 @@ const runInit: (
     const { absoluteModuleRoot } = getRoot()
 
     let templateDir
+    let extension
 
     switch (format) {
         case "js": {
             templateDir = "templates/config/v1.js"
+            extension = "mjs"
             break
         }
         case "ts": {
             templateDir = "templates/config/v1.txt"
+            extension = "ts"
             break
         }
         case "json": {
             templateDir = "templates/config/v1.json"
+            extension = "json"
             break
         }
     }
@@ -48,7 +52,9 @@ const runInit: (
         )
     }
 
-    const matchedConfig = await glob("**/nima.config.{js,ts,json,mjs}")
+    const matchedConfig = await glob("**/nima.config.{js,ts,json,mjs}", {
+        ignore: "node_modules/**/*.*",
+    })
     if (matchedConfig.length !== 0) {
         throw new NimaError(
             "Config file already found!" /*"Add the `--force` option to replace your original config file."*/,
@@ -57,14 +63,14 @@ const runInit: (
 
     try {
         fs.writeFileSync(
-            path.resolve(process.cwd(), outputDir, `nima.config.${format}`),
+            path.resolve(process.cwd(), outputDir, `nima.config.${extension}`),
             data,
         )
         fancyLog("", "blank")
         fancyLog(
             `Successfully created config at: ${outputDir.slice(
                 2,
-            )}/nima.config.${format}`,
+            )}/nima.config.${extension}`,
             "success",
         )
         return {
