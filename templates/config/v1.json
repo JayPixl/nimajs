@@ -1,0 +1,7 @@
+{
+    "compilerOptions": {
+        "content": ["**/*.{js,ts,jsx,tsx}"],
+        "outputDir": "./"
+    },
+    "animations": []
+}

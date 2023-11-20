@@ -1,0 +1,9 @@
+import type { V1Config } from "nimajs"
+
+export default {
+    compilerOptions: {
+        content: ["**/*.{js,ts,jsx,tsx}"],
+        outputDir: "./",
+    },
+    animations: []
+} satisfies V1Config
