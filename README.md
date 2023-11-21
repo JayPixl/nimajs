@@ -430,6 +430,29 @@ A trigger is composed of two parts: the event and a target, separated by an `"@"
 
 > This is also how selectors work for animated properties. For example `"opacity@child"` or `"background-color@selector#myId"`
 
+## TypeScript Configuration
+
+Nima supports TypeScript for both the Nima Config and the Nima Engine. When you run the build command Nima will scan your project for TS files and if it finds any it will automatically put the engine in TS format. However you may need some additional configuration to get your TS Nima Config file (`nima.config.ts`) in order for Nima to properly import and process it.
+
+The Nima CLI runs with `ts-node` rather than `node`, which allows it to import your JS or TS config file dynamically. However it will use the `tsconfig.json` file from your project by default, which may break the intended functionality of the import. If you get errors from the Nima build command, you can tweak the settings in your `tsconfig` file like this:
+
+```json
+{
+    // Normal tsconfig values...
+
+    "ts-node": {
+        "transpileOnly": true,
+        "compilerOptions": {
+            "target": "ESNext",
+            "module": "ESNext",
+            "moduleResolution": "Node10",
+            "jsx": "react",
+            "allowJs": true
+        }
+    }
+}
+```
+
 ## Type Reference
 
 ```ts

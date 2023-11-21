@@ -526,7 +526,7 @@ export function loadNimaEngine() {
             }
             refreshElems()
         })
-        observer.observe(document.getElementById("root")!, {
+        observer.observe(document.body, {
             subtree: true,
             childList: true,
         })

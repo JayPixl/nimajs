@@ -16,10 +16,15 @@ import {
     nimaEventTypes,
 } from "../lib/index.js"
 import { NimaTriggerConfig } from "../types/engine.js"
+import { NimaBuildOptions } from "../types/cli.js"
 
 export const generateAnimationConfigs: (
     config: NimaConfig,
-) => Promise<{ animationConfig: string; styles: string }> = async config => {
+    options: NimaBuildOptions,
+) => Promise<{ animationConfig: string; styles: string }> = async (
+    config,
+    options,
+) => {
     try {
         const NIMA_DEFAULTS = {
             triggerMode: "replace",

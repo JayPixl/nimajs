@@ -8,9 +8,10 @@ import { glob } from "glob"
 import { generateFullConfig } from "./generate-full-config.js"
 import { getClasses } from "./get-classes.js"
 import { fancyLog } from "./fancy-log.js"
+import { NimaBuildOptions } from "../types/cli.js"
 
 export const startEngine: (
-    options: { watch: boolean },
+    options: NimaBuildOptions,
     config: NimaConfig,
 ) => void = async (options, config) => {
     try {
@@ -44,8 +45,10 @@ export const startEngine: (
         const fullConfig = generateFullConfig(config, classes)
 
         fancyLog(`Generating Nima Engine...`, "info")
-        const { animationConfig, styles } =
-            await generateAnimationConfigs(fullConfig)
+        const { animationConfig, styles } = await generateAnimationConfigs(
+            fullConfig,
+            options,
+        )
 
         template = template
             .replaceAll("/* NIMA_STYLES */", styles)

@@ -1,35 +1,35 @@
 #!/usr/bin/env ts-node-esm --transpile-only
 
-import { exit } from "process"
 import { loadConfig, runInit } from "../utils/index.js"
 import { fancyLog } from "../utils/fancy-log.js"
 import { NimaError } from "../types/errors.js"
 import { startEngine } from "../utils/start-engine.js"
 import chokidar from "chokidar"
+import { getWatcherDirs } from "../utils/get-watcher-dirs.js"
 
 const args = process.argv.slice(2)
 
 fancyLog("", "header")
 
-let lastMemoryUsage = process.memoryUsage()
+// let lastMemoryUsage = process.memoryUsage()
 
-function logMemoryUsage() {
-    const memoryUsage = process.memoryUsage()
-    console.log("Memory Usage:")
-    console.log(`- RSS: ${memoryUsage.rss - lastMemoryUsage.rss} bytes`)
-    console.log(
-        `- Heap Total: ${
-            memoryUsage.heapTotal - lastMemoryUsage.heapTotal
-        } bytes`,
-    )
-    console.log(
-        `- Heap Used: ${memoryUsage.heapUsed - lastMemoryUsage.heapUsed} bytes`,
-    )
-    console.log(
-        `- External: ${memoryUsage.external - lastMemoryUsage.external} bytes`,
-    )
-    lastMemoryUsage = memoryUsage
-}
+// function logMemoryUsage() {
+//     const memoryUsage = process.memoryUsage()
+//     console.log("Memory Usage:")
+//     console.log(`- RSS: ${memoryUsage.rss - lastMemoryUsage.rss} bytes`)
+//     console.log(
+//         `- Heap Total: ${
+//             memoryUsage.heapTotal - lastMemoryUsage.heapTotal
+//         } bytes`,
+//     )
+//     console.log(
+//         `- Heap Used: ${memoryUsage.heapUsed - lastMemoryUsage.heapUsed} bytes`,
+//     )
+//     console.log(
+//         `- External: ${memoryUsage.external - lastMemoryUsage.external} bytes`,
+//     )
+//     lastMemoryUsage = memoryUsage
+// }
 
 try {
     if (args[0] === "init") {
@@ -86,12 +86,13 @@ try {
         }
 
         if (options.watch === true) {
-            const inputGlob = "**/*.{js,jsx,ts,tsx,json}"
+            const inputGlob = await getWatcherDirs()
 
             const watcher = chokidar.watch(inputGlob, {
                 persistent: true,
                 ignoreInitial: true,
                 ignored: ["node_modules/**/*.*", "**/nima-engine.*"],
+                usePolling: true,
             })
 
             let refreshCount: number = 0
