@@ -19,11 +19,14 @@ export interface NimaEngineTrigger {
     pauseTriggers: NimaTriggerConfig[]
     resumeTriggers: NimaTriggerConfig[]
 
-    staggers: {
-        uid: string
-        selector: string
-        value: number
-    }[]
+    staggers: NimaEngineStagger[]
+}
+
+export interface NimaEngineStagger {
+    uid: string
+    target: NimaTargetSelectorType
+    selector: string
+    value: number
 }
 
 export interface NimaTriggerConfig {

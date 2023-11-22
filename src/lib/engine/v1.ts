@@ -60,7 +60,7 @@ export function loadNimaEngine() {
             return uid
         }
 
-        const getTrigTargetElem = (
+        const getElemsFromSelector = (
             elem: Element,
             nimauid: string,
             targetType: NimaTargetSelectorType,
@@ -147,7 +147,7 @@ export function loadNimaEngine() {
                         const initializeTrigElems: (
                             trig: NimaTriggerConfig,
                         ) => Element[] | NodeListOf<Element> = trig => {
-                            const triggerElems = getTrigTargetElem(
+                            const triggerElems = getElemsFromSelector(
                                 elem,
                                 nimauid,
                                 trig.target,
@@ -267,8 +267,17 @@ export function loadNimaEngine() {
 
                         if (trigger.staggers.length !== 0) {
                             trigger.staggers.map(stagger => {
-                                const staggerElems = document.querySelectorAll(
-                                    stagger.selector,
+                                const staggerElems = (
+                                    stagger.target === "self"
+                                        ? document.querySelectorAll(
+                                              `.nima-${anim.name}`,
+                                          )
+                                        : getElemsFromSelector(
+                                              elem,
+                                              nimauid,
+                                              stagger.target,
+                                              stagger.selector,
+                                          )
                                 ) as NodeListOf<HTMLElement>
                                 staggerElems.forEach((el, i) => {
                                     el.style.setProperty(
@@ -311,10 +320,19 @@ export function loadNimaEngine() {
                             registerEventCallback(
                                 pauseTrig,
                                 () => {
-                                    document.documentElement.style.setProperty(
-                                        `--nm-p-${trigger.uid}`,
-                                        "paused",
-                                    )
+                                    ;(
+                                        getElemsFromSelector(
+                                            elem,
+                                            nimauid,
+                                            trigger.startTrigger.target,
+                                            trigger.startTrigger.selector,
+                                        ) as NodeListOf<HTMLElement>
+                                    ).forEach(el => {
+                                        el.style.setProperty(
+                                            `--nm-p-${trigger.uid}`,
+                                            "paused",
+                                        )
+                                    })
                                 },
                                 pauseTriggerElems[i]!,
                                 true,
@@ -325,10 +343,19 @@ export function loadNimaEngine() {
                             registerEventCallback(
                                 resumeTrig,
                                 () => {
-                                    document.documentElement.style.setProperty(
-                                        `--nm-p-${trigger.uid}`,
-                                        "running",
-                                    )
+                                    ;(
+                                        getElemsFromSelector(
+                                            elem,
+                                            nimauid,
+                                            trigger.startTrigger.target,
+                                            trigger.startTrigger.selector,
+                                        ) as NodeListOf<HTMLElement>
+                                    ).forEach(el => {
+                                        el.style.setProperty(
+                                            `--nm-p-${trigger.uid}`,
+                                            "running",
+                                        )
+                                    })
                                 },
                                 resumeTriggerElems[i]!,
                                 true,

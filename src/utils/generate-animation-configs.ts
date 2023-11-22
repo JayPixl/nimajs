@@ -635,7 +635,8 @@ export const generateAnimationConfigs: (
                         staggers +=
                             `{\n` +
                             `uid: '${motion.uid}',\n` +
-                            `selector: '${targetSelector}',\n` +
+                            `target: '${motion.target.type}',\n` +
+                            `selector: '${motion.target.selector}',\n` +
                             `value: ${getMilliseconds(
                                 motion.props.stagger,
                             )},\n` +

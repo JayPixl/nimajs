@@ -1,6 +1,8 @@
 # Nima
 
-Nima is a versatile trigger-based animation engine that is able to be used across many environments and platforms by harnessing the power of native browser keyframes animations.
+Nima is a versatile trigger-based animation engine that is able to be used across many development environments including React and even vanilla HTML by harnessing the power of native browser keyframes animations.
+
+> Nima is in Alpha! It is not recommended to use in production, and there will be many breaking changes while under development. Feel free to leave feedback at [jaypixl95@gmail.com](mailto:jaypixl95@gmail.com) with suggestions for improving this tool or to report bugs 🕷
 
 ## Usage
 
@@ -40,7 +42,7 @@ export default {
 
 The first step in bringing your animations to life is by defining their structure in the config file.
 
-> Note: there are many predefined animations available in the nimajs package! Check out the available templates before trying to create it yourself!
+<!-- > Note: there are many predefined animations available in the nimajs package! Check out the available templates before trying to create it yourself! (This feature is currently under construction! 🚧) -->
 
 We'll create a simple button animation called "my-button-animation", with a hover effect as well as a click animation.
 
