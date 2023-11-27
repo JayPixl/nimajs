@@ -3,6 +3,7 @@ import {
     customEasings,
     nimaTemplates,
     nimaEventTypes,
+    nimaTests,
 } from "../lib"
 
 /**
@@ -40,17 +41,32 @@ export type NimaTrigger =
     | NimaEventType
     | `${NimaEventType}@${NimaTargetSelector}`
 
+export type NimaExtendedTrigger =
+    | NimaTrigger
+    | {
+          trigger: NimaTrigger
+          tests?: NimaTriggerTest[]
+      }
+
 /* Motion Config */
 
 export interface NimaMotion
     extends Partial<Record<NimaPropertySelector, NimaPropertyValues>>,
         NimaMotionConfig {
-    endTriggers?: NimaTrigger[]
-    pauseTriggers?: NimaTrigger[]
-    resumeTriggers?: NimaTrigger[]
+    endTriggers?: NimaExtendedTrigger[]
+    pauseTriggers?: NimaExtendedTrigger[]
+    resumeTriggers?: NimaExtendedTrigger[]
+    tests?: NimaTriggerTest[]
 
+    /**
+     * Not yet functional
+     */
     css?: string[]
 }
+
+export type NimaTriggerTest =
+    | `${(typeof nimaTests)[number]["name"]}<${string}>`
+    | `${(typeof nimaTests)[number]["name"]}<${string}>@${NimaTargetSelector}`
 
 export interface NimaMotionConfig {
     duration?: `${number}ms` | `${number}s` | number
@@ -60,6 +76,10 @@ export interface NimaMotionConfig {
     direction?: "normal" | "reverse" | "alternate" | "alternate-reverse"
     fill?: "none" | "forwards" | "backwards" | "both"
     stagger?: `${number}ms` | `${number}s` | number
+    /**
+     * Not yet functional
+     */
+    timeline?: `view<${string}>` | `scroll<${string}>` | "auto"
 }
 
 /* Properties */
@@ -90,6 +110,9 @@ export type NimaEasingFunction =
     | "linear"
     | `cubic-bezier(${string})`
     | `steps(${string})`
+    | `linear(${string})`
+    | "step-start"
+    | "step-end"
     | NimaCustomEasings
 
 /* Events */
@@ -116,4 +139,4 @@ export const nimaTargetSelectorTypes = [
     "selector",
 ] as const
 
-export type NimaTargetSelector = `${NimaTargetSelectorType}${string}`
+export type NimaTargetSelector = string | `${NimaTargetSelectorType}${string}`

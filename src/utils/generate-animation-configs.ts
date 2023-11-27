@@ -14,8 +14,9 @@ import {
     customEasings,
     nimaAnimatableProperties,
     nimaEventTypes,
+    nimaTests,
 } from "../lib/index.js"
-import { NimaTriggerConfig } from "../types/engine.js"
+import { NimaEngineTest, NimaTriggerConfig } from "../types/engine.js"
 import { NimaBuildOptions } from "../types/cli.js"
 
 export const generateAnimationConfigs: (
@@ -106,17 +107,17 @@ export const generateAnimationConfigs: (
             property: string
             target: NimaTargetSelectorType
             selector?: string
-            extraData?: (string | number)[]
+            extraData?: string[]
         } = input => {
             let property: string
             let target: NimaTargetSelectorType = "self"
             let selector: string | undefined = undefined
-            let extraData: (string | number)[] = []
+            let extraData: string[] = []
 
-            if (/\<[^\>]+\>/g.test(input.split("@")[0]!)) {
+            if (/\<[^\>]*\>/g.test(input.split("@")[0]!)) {
                 property = input.split("@")[0]!.slice(0, input.indexOf("<"))
 
-                extraData = /(?<=\<)[^\>]+(?=\>)/g
+                extraData = /(?<=\<)[^\>]*(?=\>)/g
                     .exec(input.split("@")[0]!)![0]
                     .replaceAll("_", " ")
                     .split(",")
@@ -217,6 +218,29 @@ export const generateAnimationConfigs: (
 
                 //console.log(trigName)
 
+                const getTest: (input: string) => {
+                    target: NimaTargetSelectorType
+                    selector?: string
+                    fn: string
+                } = input => {
+                    const res = splitSelector(input)
+                    let fn = nimaTests
+                        .filter(test => test.name === res.property)[0]
+                        ?.getFn(res?.extraData || [])
+                    if (!fn) {
+                        fancyLog(
+                            `Invalid test value: \`${res.property}\``,
+                            "warn",
+                        )
+                        fn = `(el) => true`
+                    }
+                    return {
+                        target: res.target,
+                        selector: res.selector,
+                        fn,
+                    }
+                }
+
                 const parseTrigger: (
                     trig: string,
                 ) => NimaTriggerConfig = trig => {
@@ -264,22 +288,60 @@ export const generateAnimationConfigs: (
 
                 const startTrigger = parseTrigger(trigName)
 
+                let tests = myTrigger?.tests?.map(test => getTest(test))
+
                 let endTriggers: NimaTriggerConfig[] = []
                 myTrigger?.endTriggers?.map(trig => {
-                    let config = parseTrigger(trig)
-                    endTriggers.push(config)
+                    let config = parseTrigger(
+                        typeof trig === "string" ? trig : trig?.trigger,
+                    )
+                    let endTrigTests: NimaEngineTest[] = []
+                    if (typeof trig !== "string" && trig?.tests) {
+                        trig.tests.map(test =>
+                            endTrigTests.push(getTest(test) as any),
+                        ) // Add tests to output
+                    }
+                    endTriggers.push({
+                        ...config,
+                        testMode: "ALL",
+                        tests: endTrigTests,
+                    })
                 })
 
                 let pauseTriggers: NimaTriggerConfig[] = []
                 myTrigger?.pauseTriggers?.map(trig => {
-                    let config = parseTrigger(trig)
-                    pauseTriggers.push(config)
+                    let config = parseTrigger(
+                        typeof trig === "string" ? trig : trig?.trigger,
+                    )
+                    let pauseTrigTests: NimaEngineTest[] = []
+                    if (typeof trig !== "string" && trig?.tests) {
+                        trig.tests.map(test =>
+                            pauseTrigTests.push(getTest(test) as any),
+                        ) // Add tests to output
+                    }
+                    pauseTriggers.push({
+                        ...config,
+                        testMode: "ALL",
+                        tests: pauseTrigTests,
+                    })
                 })
 
                 let resumeTriggers: NimaTriggerConfig[] = []
                 myTrigger?.resumeTriggers?.map(trig => {
-                    let config = parseTrigger(trig)
-                    resumeTriggers.push(config)
+                    let config = parseTrigger(
+                        typeof trig === "string" ? trig : trig?.trigger,
+                    )
+                    let resumeTrigTests: NimaEngineTest[] = []
+                    if (typeof trig !== "string" && trig?.tests) {
+                        trig.tests.map(test =>
+                            resumeTrigTests.push(getTest(test) as any),
+                        ) // Add tests to output
+                    }
+                    resumeTriggers.push({
+                        ...config,
+                        testMode: "ALL",
+                        tests: resumeTrigTests,
+                    })
                 })
 
                 const trigUid = generateUid()
@@ -306,6 +368,7 @@ export const generateAnimationConfigs: (
                     stagger: getTimeValue(
                         myTrigger?.stagger ?? NIMA_DEFAULTS.stagger,
                     ),
+                    timeline: "auto",
                 }
 
                 let motions: {
@@ -382,6 +445,7 @@ export const generateAnimationConfigs: (
                         case "duration":
                         case "fill":
                         case "easing":
+                        case "tests":
                         case "stagger":
                         case "endTrigger":
                         case "endTriggers":
@@ -636,7 +700,9 @@ export const generateAnimationConfigs: (
                             `{\n` +
                             `uid: '${motion.uid}',\n` +
                             `target: '${motion.target.type}',\n` +
-                            `selector: '${motion.target.selector}',\n` +
+                            (motion.target.selector
+                                ? `selector: '${motion.target.selector}',\n`
+                                : "") +
                             `value: ${getMilliseconds(
                                 motion.props.stagger,
                             )},\n` +
@@ -676,6 +742,20 @@ export const generateAnimationConfigs: (
                     (startTrigger.timerData
                         ? `timerData: '${startTrigger.timerData}',\n`
                         : "") +
+                    `tests: [\n` +
+                    (tests
+                        ?.map(
+                            test =>
+                                `{\n` +
+                                `target: "${test.target}",\n` +
+                                (test.selector
+                                    ? `selector: "${test.selector}",\n`
+                                    : "") +
+                                `fn: ${test.fn},\n` +
+                                `},\n`,
+                        )
+                        .join("") || "") +
+                    `],\n` +
                     `},\n` +
                     `endTriggers: [\n` +
                     endTriggers
@@ -696,6 +776,20 @@ export const generateAnimationConfigs: (
                                 (trig.timerData
                                     ? `timerData: '${trig.timerData}',\n`
                                     : "") +
+                                `tests: [\n` +
+                                (trig.tests
+                                    ?.map(
+                                        test =>
+                                            `{\n` +
+                                            `target: "${test.target}",\n` +
+                                            (test.selector
+                                                ? `selector: "${test.selector}",\n`
+                                                : "") +
+                                            `fn: ${test.fn},\n` +
+                                            `},\n`,
+                                    )
+                                    .join("") || "") +
+                                `],\n` +
                                 `},\n`
                             )
                         })
@@ -720,6 +814,20 @@ export const generateAnimationConfigs: (
                                 (trig.timerData
                                     ? `timerData: '${trig.timerData}',\n`
                                     : "") +
+                                `tests: [\n` +
+                                (trig.tests
+                                    ?.map(
+                                        test =>
+                                            `{\n` +
+                                            `target: "${test.target}",\n` +
+                                            (test.selector
+                                                ? `selector: "${test.selector}",\n`
+                                                : "") +
+                                            `fn: ${test.fn},\n` +
+                                            `},\n`,
+                                    )
+                                    .join("") || "") +
+                                `],\n` +
                                 `},\n`
                             )
                         })
@@ -744,6 +852,20 @@ export const generateAnimationConfigs: (
                                 (trig.timerData
                                     ? `timerData: '${trig.timerData}',\n`
                                     : "") +
+                                `tests: [\n` +
+                                (trig.tests
+                                    ?.map(
+                                        test =>
+                                            `{\n` +
+                                            `target: "${test.target}",\n` +
+                                            (test.selector
+                                                ? `selector: "${test.selector}",\n`
+                                                : "") +
+                                            `fn: ${test.fn},\n` +
+                                            `},\n`,
+                                    )
+                                    .join("") || "") +
+                                `],\n` +
                                 `},\n`
                             )
                         })

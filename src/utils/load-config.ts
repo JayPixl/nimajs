@@ -7,9 +7,9 @@ import fs from "fs"
 import { fileURLToPath } from "url"
 import { fancyLog } from "./fancy-log.js"
 
-const loadConfig: () => Promise<{
+const loadConfig: (options?: { silent?: boolean }) => Promise<{
     config: NimaConfig
-}> = async () => {
+}> = async (options = {}) => {
     let config = defaultConfig
     let loadedConfig: any = null
 
@@ -44,10 +44,14 @@ const loadConfig: () => Promise<{
         )
     }
 
-    fancyLog(
-        `Found config file at: \`${path.relative(process.cwd(), configDir!)}\``,
-        "info",
-    )
+    !options?.silent &&
+        fancyLog(
+            `Found config file at: \`${path.relative(
+                process.cwd(),
+                configDir!,
+            )}\``,
+            "info",
+        )
 
     try {
         const slice = configDir?.split(".")
@@ -108,7 +112,7 @@ const loadConfig: () => Promise<{
         )
     }
 
-    fancyLog(`Reading contents of config file...`, "info")
+    !options?.silent && fancyLog(`Reading contents of config file...`, "info")
 
     if (loadedConfig) {
         if (loadedConfig?.compilerOptions?.content) {
@@ -163,13 +167,14 @@ const loadConfig: () => Promise<{
         }
     }
 
-    fancyLog(
-        `Successfully loaded config from \`${path.relative(
-            process.cwd(),
-            configDir!,
-        )}\` in ${Date.now() - timestamp}ms`,
-        "boldinfo",
-    )
+    !options?.silent &&
+        fancyLog(
+            `Successfully loaded config from \`${path.relative(
+                process.cwd(),
+                configDir!,
+            )}\` in ${Date.now() - timestamp}ms`,
+            "boldinfo",
+        )
 
     return {
         config,

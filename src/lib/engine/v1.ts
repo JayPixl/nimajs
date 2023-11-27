@@ -173,10 +173,49 @@ export function loadNimaEngine() {
 
                         const registerEventCallback: (
                             trig: NimaTriggerConfig,
-                            action: () => any,
+                            callback: () => void,
                             targetElems: Element[] | NodeListOf<Element>,
                             persistent: boolean,
-                        ) => void = (trig, action, targetElems, persistent) => {
+                        ) => void = (
+                            trig,
+                            callback,
+                            targetElems,
+                            persistent,
+                        ) => {
+                            const action = () => {
+                                if (trig?.tests?.length) {
+                                    let results: boolean[] = []
+                                    trig.tests?.map(test => {
+                                        const elems = getElemsFromSelector(
+                                            elem,
+                                            nimauid,
+                                            test.target,
+                                            test.selector,
+                                        )
+                                        elems.forEach(el => {
+                                            results.push(test.fn(el))
+                                        })
+                                    })
+                                    if (trig.testMode === "ALL") {
+                                        if (
+                                            results.filter(res => res === false)
+                                                .length === 0
+                                        ) {
+                                            callback()
+                                        }
+                                    } else {
+                                        if (
+                                            results.filter(res => res === true)
+                                                .length > 0
+                                        ) {
+                                            callback()
+                                        }
+                                    }
+                                } else {
+                                    callback()
+                                }
+                            }
+
                             if (trig.event === "animationend") {
                                 elem.addEventListener(
                                     "animationend",
@@ -291,6 +330,18 @@ export function loadNimaEngine() {
                         const startTriggerElems = initializeTrigElems(
                             trigger.startTrigger,
                         )
+                        if (trigger.startTrigger.event === "load") {
+                            elem.classList.add(`nm-a-${trigger.uid}`)
+                        } else {
+                            registerEventCallback(
+                                trigger.startTrigger,
+                                () => {
+                                    elem.classList.add(`nm-a-${trigger.uid}`)
+                                },
+                                startTriggerElems,
+                                true,
+                            )
+                        }
 
                         let endTriggerElems: (
                             | Element[]
@@ -314,6 +365,17 @@ export function loadNimaEngine() {
                         )[] = []
                         trigger.resumeTriggers.map(trig => {
                             resumeTriggerElems.push(initializeTrigElems(trig))
+                        })
+
+                        trigger.endTriggers.map((endTrig, i) => {
+                            registerEventCallback(
+                                endTrig,
+                                () => {
+                                    elem.classList.remove(`nm-a-${trigger.uid}`)
+                                },
+                                endTriggerElems[i]!,
+                                true,
+                            )
                         })
 
                         trigger.pauseTriggers.map((pauseTrig, i) => {
@@ -361,171 +423,6 @@ export function loadNimaEngine() {
                                 true,
                             )
                         })
-
-                        if (trigger.startTrigger.event === "load") {
-                            elem.classList.add(`nm-a-${trigger.uid}`)
-                            trigger.endTriggers.map((endTrig, i) => {
-                                registerEventCallback(
-                                    endTrig,
-                                    () =>
-                                        elem.classList.remove(
-                                            `nm-a-${trigger.uid}`,
-                                        ),
-                                    endTriggerElems[i]!,
-                                    true,
-                                )
-                            })
-                        } else if (
-                            trigger.startTrigger.event === "viewportenter"
-                        ) {
-                            const callback: IntersectionObserverCallback =
-                                entries => {
-                                    entries.map(entry => {
-                                        if (entry.isIntersecting) {
-                                            elem.classList.add(
-                                                `nm-a-${trigger.uid}`,
-                                            )
-                                            trigger.endTriggers.map(
-                                                (endTrig, i) => {
-                                                    registerEventCallback(
-                                                        endTrig,
-                                                        () =>
-                                                            elem.classList.remove(
-                                                                `nm-a-${trigger.uid}`,
-                                                            ),
-                                                        endTriggerElems[i]!,
-                                                        false,
-                                                    )
-                                                },
-                                            )
-                                        }
-                                    })
-                                }
-                            const intobserver = new IntersectionObserver(
-                                callback,
-                                {
-                                    rootMargin:
-                                        `${trigger.startTrigger.viewportMargin}` ??
-                                        "0px",
-                                    threshold:
-                                        trigger.startTrigger
-                                            .viewportThreshold ?? 0,
-                                },
-                            )
-                            startTriggerElems.forEach(el => {
-                                intobserver.observe(el)
-                            })
-
-                            abort.signal.addEventListener("abort", () =>
-                                intobserver.disconnect(),
-                            )
-                        } else if (
-                            trigger.startTrigger.event === "viewportleave"
-                        ) {
-                            const callback: IntersectionObserverCallback =
-                                entries => {
-                                    entries.map(entry => {
-                                        if (!entry.isIntersecting) {
-                                            elem.classList.add(
-                                                `nm-a-${trigger.uid}`,
-                                            )
-                                            trigger.endTriggers.map(
-                                                (endTrig, i) => {
-                                                    registerEventCallback(
-                                                        endTrig,
-                                                        () =>
-                                                            elem.classList.remove(
-                                                                `nm-a-${trigger.uid}`,
-                                                            ),
-                                                        endTriggerElems[i]!,
-                                                        false,
-                                                    )
-                                                },
-                                            )
-                                        }
-                                    })
-                                }
-                            const intobserver = new IntersectionObserver(
-                                callback,
-                                {
-                                    rootMargin:
-                                        `${trigger.startTrigger.viewportMargin}` ??
-                                        "0px",
-                                    threshold:
-                                        trigger.startTrigger
-                                            .viewportThreshold ?? 0,
-                                },
-                            )
-                            startTriggerElems.forEach(el => {
-                                intobserver.observe(el)
-                            })
-                            abort.signal.addEventListener("abort", () =>
-                                intobserver.disconnect(),
-                            )
-                        } else if (trigger.startTrigger.event === "timer") {
-                            setTimeout(
-                                () => {
-                                    elem.classList.add(`nm-a-${trigger.uid}`)
-                                    trigger.endTriggers.map((endTrig, i) => {
-                                        registerEventCallback(
-                                            endTrig,
-                                            () =>
-                                                elem.classList.remove(
-                                                    `nm-a-${trigger.uid}`,
-                                                ),
-                                            endTriggerElems[i]!,
-                                            false,
-                                        )
-                                    })
-                                },
-                                (trigger.startTrigger.timerData as number) ??
-                                    500,
-                            )
-                        } else {
-                            startTriggerElems.forEach(trigElem => {
-                                trigElem.addEventListener(
-                                    trigger.startTrigger.event,
-                                    () => {
-                                        elem.classList.add(
-                                            `nm-a-${trigger.uid}`,
-                                        )
-
-                                        if (anim.triggerMode === "replace") {
-                                            anim.triggers
-                                                .filter(
-                                                    trig =>
-                                                        trig.uid !==
-                                                        trigger.uid,
-                                                )
-                                                .map(trig => {
-                                                    elem.classList.remove(
-                                                        `nm-a-${trig.uid}`,
-                                                    )
-                                                })
-                                        } else {
-                                            trigger.endTriggers.map(
-                                                (endTrig, i) => {
-                                                    registerEventCallback(
-                                                        endTrig,
-                                                        () =>
-                                                            elem.classList.remove(
-                                                                `nm-a-${trigger.uid}`,
-                                                            ),
-                                                        endTriggerElems[i]!,
-                                                        false,
-                                                    )
-                                                },
-                                            )
-                                        }
-                                    },
-                                    {
-                                        signal: eventListeners[anim.name]?.get(
-                                            trigElem,
-                                        )!.abort.signal,
-                                    },
-                                )
-                            })
-                        }
                     })
                 })
             })

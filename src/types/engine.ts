@@ -25,7 +25,7 @@ export interface NimaEngineTrigger {
 export interface NimaEngineStagger {
     uid: string
     target: NimaTargetSelectorType
-    selector: string
+    selector?: string
     value: number
 }
 
@@ -36,6 +36,14 @@ export interface NimaTriggerConfig {
     viewportMargin?: number | string
     viewportThreshold?: number
     timerData?: string | number
+    testMode?: "ALL" | "SOME"
+    tests?: NimaEngineTest[]
+}
+
+export interface NimaEngineTest {
+    target: NimaTargetSelectorType
+    selector?: string
+    fn: (el: any) => boolean
 }
 
 type NimaTriggerOld =

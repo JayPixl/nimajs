@@ -300,9 +300,26 @@ export default {
             fill: "<'none'|'forwards'|'backwards'|'both'>"
 
 
+            // Tests
+
+            // Trigger will only take effect if tests pass
+            tests: [
+                // ex. `"hasValue<test>@selectorinput#nameInput"`
+                "<NimaTriggerTest>"
+            ]
+
+
             // Action triggers
 
             // Triggers to end the animation
+            // ex. `"mouseenter@selector#myId"``
+            // - OR -
+            // `{
+            //    trigger: "mouseenter@selector#myId",
+            //    tests: [
+            //        "hasValue<test>@selectorinput#nameInput"
+            //    ]
+            // }`
             endTriggers: [
                 "<NimaTrigger>"
             ]
@@ -400,6 +417,7 @@ A trigger is composed of two parts: the event and a target, separated by an `"@"
             Selects an ancestor of the animated element.
 
         -   `"selector"`
+
             Used to select an element not relative to the animated element.
 
     -   Selector
@@ -491,15 +509,28 @@ export type NimaTrigger =
     | NimaEventType
     | `${NimaEventType}@${NimaTargetSelector}`
 
+export type NimaExtendedTrigger =
+    | NimaTrigger
+    | {
+          trigger: NimaTrigger
+          tests?: NimaTriggerTest[]
+      }
+
 /* Motion Config */
 
 export interface NimaMotion
     extends Partial<Record<NimaPropertySelector, NimaPropertyValues>>,
         NimaMotionConfig {
-    endTriggers?: NimaTrigger[]
-    pauseTriggers?: NimaTrigger[]
-    resumeTriggers?: NimaTrigger[]
+    endTriggers?: NimaExtendedTrigger[]
+    pauseTriggers?: NimaExtendedTrigger[]
+    resumeTriggers?: NimaExtendedTrigger[]
+    tests?: NimaTriggerTest[]
 }
+
+// All tests that can be performed on a trigger, such as "hasValue"
+export type NimaTriggerTest =
+    | `${(typeof nimaTests)[number]["name"]}<${string}>`
+    | `${(typeof nimaTests)[number]["name"]}<${string}>@${NimaTargetSelector}`
 
 export interface NimaMotionConfig {
     duration?: `${number}ms` | `${number}s` | number
@@ -541,6 +572,9 @@ export type NimaEasingFunction =
     | "linear"
     | `cubic-bezier(${string})`
     | `steps(${string})`
+    | `linear(${string})`
+    | "step-start"
+    | "step-end"
     | NimaCustomEasings
 
 /* Events */
