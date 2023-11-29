@@ -20,6 +20,7 @@ export interface NimaEngineTrigger {
     resumeTriggers: NimaTriggerConfig[]
 
     staggers: NimaEngineStagger[]
+    randoms: NimaEngineRandoms[]
 }
 
 export interface NimaEngineStagger {
@@ -27,6 +28,17 @@ export interface NimaEngineStagger {
     target: NimaTargetSelectorType
     selector?: string
     value: number
+}
+
+export interface NimaEngineRandoms {
+    randuid: string
+    motionuid: string
+    min: number
+    max: number
+    step: number
+    unit: string
+    target: NimaTargetSelectorType
+    selector?: string
 }
 
 export interface NimaTriggerConfig {

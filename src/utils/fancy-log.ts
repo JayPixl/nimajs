@@ -20,7 +20,7 @@ export const fancyLog: (
             break
         }
         case "boldinfo": {
-            console.log(chalk.gray.bold(`✧  ${message}`))
+            console.log(chalk.rgb(160, 160, 160).bold(`✧  ${message}`))
             break
         }
         case "important": {
@@ -51,7 +51,7 @@ export const fancyLog: (
             break
         }
         case "hint": {
-            console.log(chalk.gray(`✧  ${chalk.italic(message)}`))
+            console.log(chalk.rgb(160, 160, 160)(`✧  ${chalk.italic(message)}`))
             break
         }
         case "success": {

@@ -148,29 +148,6 @@ export const generateAnimationConfigs: (
             }
         }
 
-        const buildValue = (
-            prop: NimaAnimatableProperties,
-            value: string | number,
-        ) => {
-            switch (prop) {
-                case "translateX": {
-                    return `translate: ${
-                        isNaN(Number(value)) ? value : `${value}px`
-                    } var(--nima-translate-y)`
-                    break
-                }
-                case "translateY": {
-                    return `translate: var(--nima-translate-x) ${
-                        isNaN(Number(value)) ? value : `${value}px`
-                    }`
-                    break
-                }
-                default: {
-                    return `${prop}: ${value}`
-                }
-            }
-        }
-
         config.animations?.map(anim => {
             //console.log(`ANIM ${anim.name}`)
             let template
@@ -215,6 +192,7 @@ export const generateAnimationConfigs: (
                 const myTrigger = allTriggers![trigName]! as NimaMotion
 
                 let staggers = ""
+                let randoms = ""
 
                 //console.log(trigName)
 
@@ -387,6 +365,29 @@ export const generateAnimationConfigs: (
 
                     //console.log(splitProp)
 
+                    const buildValue = (
+                        prop: NimaAnimatableProperties,
+                        value: string | number,
+                    ) => {
+                        switch (prop) {
+                            case "translateX": {
+                                return `translate: ${
+                                    isNaN(Number(value)) ? value : `${value}px`
+                                } var(--nima-translate-y)`
+                                break
+                            }
+                            case "translateY": {
+                                return `translate: var(--nima-translate-x) ${
+                                    isNaN(Number(value)) ? value : `${value}px`
+                                }`
+                                break
+                            }
+                            default: {
+                                return `${prop}: ${value}`
+                            }
+                        }
+                    }
+
                     const addProps = (
                         frames: Partial<Record<NimaFrameKey, string[]>>,
                         props: NimaMotionConfig,
@@ -395,6 +396,59 @@ export const generateAnimationConfigs: (
                             selector?: string
                         },
                     ) => {
+                        let rands: {
+                            uid: string
+                            unit: string
+                            min: string
+                            max: string
+                            step: string
+                        }[] = []
+
+                        Object.values(frames).map((vals, i) => {
+                            //console.log(frames[Object.keys(frames)[i] as any])
+
+                            vals?.map(val => {
+                                val
+                                    .match(/\?[a-zA-Z]*\<[^\>]*\>/g)
+                                    ?.map(match => {
+                                        const unit = match.slice(
+                                            1,
+                                            match.indexOf("<"),
+                                        )
+                                        const vals = match
+                                            .slice(
+                                                match.indexOf("<") + 1,
+                                                match.indexOf(">"),
+                                            )
+                                            .split(",")
+
+                                        const randuid = generateUid()
+
+                                        let caught = false
+                                        frames[Object.keys(frames)[i] as any] =
+                                            frames[
+                                                Object.keys(frames)[i] as any
+                                            ]?.map(str => {
+                                                if (caught === false) {
+                                                    return str.replace(
+                                                        match,
+                                                        `var(--nm-r-${randuid})`,
+                                                    )
+                                                }
+                                                return str
+                                            })
+
+                                        rands.push({
+                                            uid: randuid,
+                                            unit,
+                                            min: vals[0] || "0",
+                                            max: vals[1] || "1",
+                                            step: vals[2] || "0.01",
+                                        })
+                                    })
+                            })
+                        })
+
                         const matchedMotion = motions.filter(
                             motion =>
                                 JSON.stringify(
@@ -410,8 +464,14 @@ export const generateAnimationConfigs: (
                                     ].sort(),
                                 ),
                         )[0]
+
+                        let myMotionUid = ""
+
                         if (matchedMotion) {
                             //console.log(matchedMotion)
+
+                            myMotionUid = matchedMotion.uid
+
                             Object.keys(frames).map(frameKey => {
                                 const frameValue = frames[frameKey as any]!
                                 const res = motions[
@@ -426,8 +486,9 @@ export const generateAnimationConfigs: (
                                 }
                             })
                         } else {
+                            myMotionUid = generateUid()
                             motions.push({
-                                uid: generateUid(),
+                                uid: myMotionUid,
                                 target,
                                 props: {
                                     ...motionDefaults,
@@ -436,6 +497,21 @@ export const generateAnimationConfigs: (
                                 frames,
                             })
                         }
+                        rands.map(rand => {
+                            randoms +=
+                                `{\n` +
+                                `randuid: "${rand.uid}",\n` +
+                                `motionuid: "${myMotionUid}",\n` +
+                                `min: ${rand.min},\n` +
+                                `max: ${rand.max},\n` +
+                                `step: ${rand.step},\n` +
+                                `unit: "${rand.unit}",\n` +
+                                `target: "${target.type}",\n` +
+                                (target.selector
+                                    ? `selector: "${target.selector}",\n`
+                                    : "") +
+                                `},\n`
+                        })
                     }
 
                     switch (prop) {
@@ -450,6 +526,7 @@ export const generateAnimationConfigs: (
                         case "endTrigger":
                         case "endTriggers":
                         case "pauseTriggers":
+                        case "timeline":
                         case "resumeTriggers":
                             break
                         default: {
@@ -606,8 +683,6 @@ export const generateAnimationConfigs: (
                         }
                     }
                 })
-
-                // console.log(JSON.stringify(motions))
 
                 const getTargetSelector = (target: {
                     type: NimaTargetSelectorType
@@ -873,6 +948,9 @@ export const generateAnimationConfigs: (
                     `],\n` +
                     `staggers: [\n` +
                     staggers +
+                    `],\n` +
+                    `randoms: [\n` +
+                    randoms +
                     `],\n` +
                     `},\n`
             })

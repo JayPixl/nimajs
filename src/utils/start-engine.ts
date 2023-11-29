@@ -9,6 +9,10 @@ import { generateFullConfig } from "./generate-full-config.js"
 import { getClasses } from "./get-classes.js"
 import { fancyLog } from "./fancy-log.js"
 import { NimaBuildOptions } from "../types/cli.js"
+import postcss from "postcss"
+import autoprefixer from "autoprefixer"
+import cssnano from "cssnano"
+import UglifyJS from "uglify-js"
 
 export const startEngine: (
     options: NimaBuildOptions,
@@ -17,9 +21,11 @@ export const startEngine: (
     try {
         const { absoluteModuleRoot } = getRoot()
         const timestamp = Date.now()
-        const tsMode =
-            (await glob("**/*.{ts,tsx}", { ignore: "node_modules/**/*.*" }))
-                .length !== 0
+
+        const tsMode: boolean = options?.format
+            ? options.format === "ts"
+            : (await glob("**/*.{ts,tsx}", { ignore: "node_modules/**/*.*" }))
+                  .length !== 0
 
         let template = (
             !tsMode
@@ -45,14 +51,61 @@ export const startEngine: (
         const fullConfig = generateFullConfig(config, classes)
 
         fancyLog(`Generating Nima Engine...`, "info")
-        const { animationConfig, styles } = await generateAnimationConfigs(
+        let { animationConfig, styles } = await generateAnimationConfigs(
             fullConfig,
             options,
         )
 
+        if (options.minifyCSS) {
+            try {
+                const res = await postcss([
+                    autoprefixer,
+                    cssnano({ preset: "default" }),
+                ]).process(styles, { from: undefined })
+                styles = res.css
+            } catch (e) {
+                fancyLog("Could not minify CSS", "warn")
+            }
+        }
+
+        // Deal with minifier warnings and add CLI options
+
         template = template
             .replaceAll("/* NIMA_STYLES */", styles)
             .replaceAll("/* NIMA_ANIMATIONS */", animationConfig)
+
+        if (options.minifyJS) {
+            try {
+                if (!tsMode) {
+                    const res = UglifyJS.minify(template)
+                    if (res.code && !res.error) {
+                        template = res.code
+                    } else throw res.error
+                } else {
+                    if (options.format === "ts") {
+                        fancyLog(
+                            `Cannot minify engine when in TypeScript format`,
+                            "warn",
+                        )
+                    } else {
+                        fancyLog(
+                            `Cannot minify engine when in TypeScript format`,
+                            "warn",
+                        )
+                        fancyLog(
+                            `TypeScript was detected in your project, so the format was automatically set to TS mode.`,
+                            "hint",
+                        )
+                        fancyLog(
+                            `Try either manually setting the output format or use the \`--no-minify-js\` flag.`,
+                            "hint",
+                        )
+                    }
+                }
+            } catch (e) {
+                fancyLog("Could not minify JavaScript", "warn")
+            }
+        }
 
         const enginePath = path.resolve(
             process.cwd(),

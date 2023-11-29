@@ -30,6 +30,7 @@ Object.keys(paths).map(key => {
             paths[key].output,
             [target[0], template[1]].join("/* END_IMPORTS */"),
         )
+        console.log("Compilation complete")
     })
 
     watcher.on("error", error => {

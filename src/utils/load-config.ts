@@ -44,14 +44,14 @@ const loadConfig: (options?: { silent?: boolean }) => Promise<{
         )
     }
 
-    !options?.silent &&
-        fancyLog(
-            `Found config file at: \`${path.relative(
-                process.cwd(),
-                configDir!,
-            )}\``,
-            "info",
-        )
+    // !options?.silent &&
+    //     fancyLog(
+    //         `Found config file at: \`${path.relative(
+    //             process.cwd(),
+    //             configDir!,
+    //         )}\``,
+    //         "info",
+    //     )
 
     try {
         const slice = configDir?.split(".")
@@ -112,7 +112,7 @@ const loadConfig: (options?: { silent?: boolean }) => Promise<{
         )
     }
 
-    !options?.silent && fancyLog(`Reading contents of config file...`, "info")
+    // !options?.silent && fancyLog(`Reading contents of config file...`, "info")
 
     if (loadedConfig) {
         if (loadedConfig?.compilerOptions?.content) {

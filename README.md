@@ -89,10 +89,10 @@ animations: [
 In order to use our handy new animation in our project, we need to build the Nima Engine using the Nima CLI again. Run this command in your terminal from the root of your project, and the engine will be built in the output directory defined by your Nima config file compiler options.
 
 ```bash
-npx nima build
+npx nima build --js
 ```
 
-This should build a `nima-engine.js` file in the root of your project, loaded with all the CSS keyframes, selectors, and JavaScript necessary to handle your awesome new animation!
+This will build a `nima-engine.js` file in the root of your project, loaded with all the CSS keyframes, selectors, and JavaScript necessary to handle your awesome new animation!
 
 ### Implementation
 
@@ -102,7 +102,7 @@ The last steps in order to include your animation in your project are importing 
 
 Importing the Nima engine will be different with different project types and formats, but we'll give an example using React.
 
-In your `App.tsx` file, import the Nima Engine start function from the `nima-engine.js` file, and use it in a `useEffect()` hook in the `App` function.
+In your `App.jsx` file, import the Nima Engine start function from the `nima-engine.js` file, and use it in a `useEffect()` hook in the `App` function.
 
 ```jsx
 import React, { useEffect } from "react"
@@ -183,7 +183,7 @@ Creates a nima config file in your project.
 
         -   ex `-o ./src`
 
-#### `build [options]`
+#### `build [options] [minify] [format]`
 
 Runs the build script to generate the Nima Engine at the directory specified in the config file.
 
@@ -192,6 +192,36 @@ Runs the build script to generate the Nima Engine at the directory specified in 
     -   `--watch` or `-w`
 
         -   Run in watch mode. Watches for changes to input files or config file and reruns the build command automatically.
+
+-   Minify
+
+    CSS and JS minification are automatically set to true by default.
+
+    -   `--minify` or `-m`
+
+        -   Minify both CSS and JS engine output.
+
+    -   `--minify-css`
+
+        -   Minify CSS output. Use `--no-minify-css` to cancel CSS minification.
+
+    -   `--minify-js`
+
+        -   Minify JS output. Use `--no-minify-js` to cancel JS minification.
+
+        > Cannot minify when in TypeScript mode! Set the format explicitly with the `--ts` flag or use `--no-minify-js` to avoid errors at build time.
+
+-   Format
+
+    Nima will automatically detect whether the engine should be output in TypeScript or JavaScript format. Note that this detection mechanism isn't perfect so it's best to use one of these options to explicitly set the output format.
+
+    -   `--js`
+
+        -   The Nima engine will be output in `js` format as `nima-engine.js`.
+
+    -   `--ts`
+
+        -   The Nima engine will be output in `ts` format as `nima-engine.ts`. Using this flag automatically sets the JS minification option to false as there is no TypeScript minification option available at the moment.
 
 ## Config Reference
 
@@ -449,6 +479,48 @@ A trigger is composed of two parts: the event and a target, separated by an `"@"
     ```
 
 > This is also how selectors work for animated properties. For example `"opacity@child"` or `"background-color@selector#myId"`
+
+### Randomization
+
+Nima supports randomized number values. The value will change once per animation iteration to a random value between the minimum and maximum value provided. Here is the syntax for using randomized property values.
+
+-   Syntax
+
+    `"?[unit]<[minimum],[maximum],[step]>"`
+
+    -   `unit`
+
+        This is the unit that the randomized value is expressed in. May be blank.
+
+        Ex. `"px"` or `"%"` or `""`
+
+    -   `minimum`
+
+        Minimum possible value. Must be a number.
+
+        Ex. `"0.1"` or `"-300"` or `"75"`
+
+    -   `maximum`
+
+        Maximum possible value. Must be a number.
+
+        Ex. `"0.1"` or `"-300"` or `"75"`
+
+    -   `step`
+
+        Result is rounded to the nearest increment of this number. Must be a positive number.
+
+        Ex. `"0.5"` or `"1"`
+
+-   Examples
+
+    ```ts
+    "?px<0,500>" // Random value from 0 to 500 in pixels
+
+    "?%<0,100>" // Random value from 0 to 100 in percent
+
+    "?<-53,100>" // Random number value from -53 to 100
+    ```
 
 ## TypeScript Configuration
 

@@ -12,9 +12,7 @@ export function loadNimaEngine() {
     }
 
     /* Initialize Stylesheet */
-    const nimaStyles = `
-        /* NIMA_STYLES */
-    `
+    const nimaStyles = `/* NIMA_STYLES */`
 
     /* Only do once, regarless of how many times the document loads */
     if (!document.documentElement.classList.contains("nm-l")) {
@@ -323,6 +321,64 @@ export function loadNimaEngine() {
                                         `--nm-d-${stagger.uid}`,
                                         `${stagger.value * i}ms`,
                                     )
+                                })
+                            })
+                        }
+
+                        if (trigger.randoms.length !== 0) {
+                            trigger.randoms.map(random => {
+                                const randElems = getElemsFromSelector(
+                                    elem,
+                                    nimauid,
+                                    random.target,
+                                    random.selector,
+                                ) as NodeListOf<HTMLElement>
+                                randElems.forEach(el => {
+                                    let res
+                                    if (!el.hasAttribute("data-nimauid")) {
+                                        res = InitializeElement(el)
+                                    } else {
+                                        res = eventListeners[anim.name]!.get(el)
+                                    }
+
+                                    if (
+                                        !el.classList.contains(
+                                            `nm-r-${random.randuid}`,
+                                        )
+                                    ) {
+                                        const randomize = () => {
+                                            el.style.setProperty(
+                                                `--nm-r-${random.randuid}`,
+                                                `${
+                                                    Math.round(
+                                                        (Math.random() *
+                                                            (random.max -
+                                                                random.min) +
+                                                            random.min) /
+                                                            random.step,
+                                                    ) * random.step
+                                                }${random.unit}`,
+                                            )
+                                        }
+                                        randomize()
+                                        el.addEventListener(
+                                            "animationiteration",
+                                            e => {
+                                                if (
+                                                    `nm-k-${random.motionuid}` ===
+                                                    e.animationName
+                                                ) {
+                                                    randomize()
+                                                }
+                                            },
+                                            {
+                                                signal: res!.abort.signal,
+                                            },
+                                        )
+                                        el.classList.add(
+                                            `nm-r-${random.randuid}`,
+                                        )
+                                    }
                                 })
                             })
                         }
