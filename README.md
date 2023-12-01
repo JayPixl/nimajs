@@ -153,6 +153,14 @@ npx nimajs [command] [flags]
 
 > If run without a command, defaults to the `build` command.
 
+### Help
+
+Run this command to access the help menu.
+
+```bash
+npx nima --help
+```
+
 ### Commands
 
 #### `init [format] [output]`

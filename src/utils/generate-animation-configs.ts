@@ -184,9 +184,13 @@ export const generateAnimationConfigs: (
                 )
             }
 
-            let mySelectors: { [index: string]: string[] } = {}
+            let mySelectors: {
+                [index: string]: string[]
+            } = {}
 
             let trigUids: string[] = []
+
+            let hasTimeline: boolean = false
 
             Object.keys(allTriggers).map(trigName => {
                 const myTrigger = allTriggers![trigName]! as NimaMotion
@@ -328,26 +332,41 @@ export const generateAnimationConfigs: (
 
                 trigUids.push(trigUid)
 
-                let motionDefaults: Record<keyof NimaMotionConfig, string> = {
-                    duration: getTimeValue(
-                        myTrigger?.duration ?? NIMA_DEFAULTS.duration,
-                    ),
-                    delay: getTimeValue(
-                        myTrigger?.delay ?? NIMA_DEFAULTS.delay,
-                    ),
-                    iterations: (
-                        myTrigger?.iterations ?? NIMA_DEFAULTS.iterations
-                    ).toString(),
-                    easing: getEasingFunction(
-                        myTrigger?.easing ?? NIMA_DEFAULTS.easing,
-                    ),
-                    direction: myTrigger?.direction ?? NIMA_DEFAULTS.direction,
-                    fill: myTrigger.fill ?? NIMA_DEFAULTS.fill,
-                    stagger: getTimeValue(
-                        myTrigger?.stagger ?? NIMA_DEFAULTS.stagger,
-                    ),
-                    timeline: "auto",
-                }
+                let motionDefaults: Record<keyof NimaMotionConfig, string> =
+                    myTrigger.timeline && myTrigger?.timeline !== "auto"
+                        ? {
+                              duration: "1ms",
+                              delay: "0ms",
+                              iterations: "1",
+                              easing: "linear",
+                              direction: "alternate",
+                              fill: "both",
+                              stagger: "0s",
+                              timeline: myTrigger.timeline,
+                          }
+                        : {
+                              duration: getTimeValue(
+                                  myTrigger?.duration ?? NIMA_DEFAULTS.duration,
+                              ),
+                              delay: getTimeValue(
+                                  myTrigger?.delay ?? NIMA_DEFAULTS.delay,
+                              ),
+                              iterations: (
+                                  myTrigger?.iterations ??
+                                  NIMA_DEFAULTS.iterations
+                              ).toString(),
+                              easing: getEasingFunction(
+                                  myTrigger?.easing ?? NIMA_DEFAULTS.easing,
+                              ),
+                              direction:
+                                  myTrigger?.direction ??
+                                  NIMA_DEFAULTS.direction,
+                              fill: myTrigger.fill ?? NIMA_DEFAULTS.fill,
+                              stagger: getTimeValue(
+                                  myTrigger?.stagger ?? NIMA_DEFAULTS.stagger,
+                              ),
+                              timeline: "auto",
+                          }
 
                 let motions: {
                     frames: Partial<Record<NimaFrameKey, string[]>>
@@ -492,7 +511,9 @@ export const generateAnimationConfigs: (
                                 target,
                                 props: {
                                     ...motionDefaults,
-                                    ...(props as any),
+                                    ...(motionDefaults.timeline === "auto"
+                                        ? (props as any)
+                                        : {}),
                                 },
                                 frames,
                             })
@@ -526,8 +547,12 @@ export const generateAnimationConfigs: (
                         case "endTrigger":
                         case "endTriggers":
                         case "pauseTriggers":
-                        case "timeline":
                         case "resumeTriggers":
+                            break
+                        case "timeline":
+                            if ((myProp as any) !== "auto") {
+                                hasTimeline = true
+                            }
                             break
                         default: {
                             if (
@@ -586,32 +611,37 @@ export const generateAnimationConfigs: (
                                         )
                                     }
                                 } else if (myProp?.frames) {
-                                    let myConfig: NimaMotionConfig = {
-                                        duration: getTimeValue(
-                                            myProp?.duration ??
-                                                motionDefaults.duration,
-                                        ),
-                                        delay: getTimeValue(
-                                            myProp?.delay ??
-                                                motionDefaults.delay,
-                                        ),
-                                        direction:
-                                            myProp?.direction ??
-                                            motionDefaults.direction,
-                                        easing: getEasingFunction(
-                                            myProp?.easing ??
-                                                motionDefaults.easing,
-                                        ),
-                                        fill:
-                                            myProp?.fill ?? motionDefaults.fill,
-                                        iterations:
-                                            myProp?.iterations ??
-                                            motionDefaults.iterations,
-                                        stagger: getTimeValue(
-                                            myProp?.stagger ??
-                                                motionDefaults.stagger,
-                                        ),
-                                    } as NimaMotionConfig
+                                    let myConfig: NimaMotionConfig = (
+                                        motionDefaults.timeline === "auto"
+                                            ? {
+                                                  duration: getTimeValue(
+                                                      myProp?.duration ??
+                                                          motionDefaults.duration,
+                                                  ),
+                                                  delay: getTimeValue(
+                                                      myProp?.delay ??
+                                                          motionDefaults.delay,
+                                                  ),
+                                                  direction:
+                                                      myProp?.direction ??
+                                                      motionDefaults.direction,
+                                                  easing: getEasingFunction(
+                                                      myProp?.easing ??
+                                                          motionDefaults.easing,
+                                                  ),
+                                                  fill:
+                                                      myProp?.fill ??
+                                                      motionDefaults.fill,
+                                                  iterations:
+                                                      myProp?.iterations ??
+                                                      motionDefaults.iterations,
+                                                  stagger: getTimeValue(
+                                                      myProp?.stagger ??
+                                                          motionDefaults.stagger,
+                                                  ),
+                                              }
+                                            : motionDefaults
+                                    ) as NimaMotionConfig
                                     // Check if frames value is array, build props like above
                                     let builtFrames: Partial<
                                         Record<NimaFrameKey, string[]>
@@ -721,7 +751,9 @@ export const generateAnimationConfigs: (
                     }
                 }
 
-                let myMotions: { [index: string]: string[] } = {}
+                let myMotions: {
+                    [index: string]: { anim: string; timeline?: string }[]
+                } = {}
 
                 motions.map(motion => {
                     keyframes +=
@@ -785,15 +817,33 @@ export const generateAnimationConfigs: (
                     }
 
                     myMotions?.[targetSelector]
-                        ? myMotions[targetSelector]!.push(val)
-                        : (myMotions[targetSelector] = [val])
+                        ? myMotions[targetSelector]!.push({
+                              anim: val,
+                              ...(hasTimeline
+                                  ? { timeline: motion.props.timeline }
+                                  : {}),
+                          })
+                        : (myMotions[targetSelector] = [
+                              {
+                                  anim: val,
+                                  ...(hasTimeline
+                                      ? { timeline: motion.props.timeline }
+                                      : {}),
+                              },
+                          ])
                 })
-
-                // mySelectors.push(`--nm-a-${trigUid}: ` + myMotions.join(","))
 
                 Object.keys(myMotions).map(target => {
                     const val =
-                        `--nm-a-${trigUid}: ` + myMotions[target]!.join(",")
+                        `--nm-a-${trigUid}: ` +
+                        myMotions[target]!.map(obj => obj.anim).join(",") +
+                        (hasTimeline
+                            ? `;\n--nm-t-${trigUid}: ` +
+                              myMotions[target]!.map(obj => obj.timeline).join(
+                                  ",",
+                              )
+                            : "")
+
                     mySelectors?.[target]
                         ? mySelectors[target]!.push(val)
                         : (mySelectors[target] = [val])
@@ -815,7 +865,7 @@ export const generateAnimationConfigs: (
                         ? `viewportThreshold: ${startTrigger.viewportThreshold},\n`
                         : "") +
                     (startTrigger.timerData
-                        ? `timerData: '${startTrigger.timerData}',\n`
+                        ? `timerData: ${startTrigger.timerData},\n`
                         : "") +
                     `tests: [\n` +
                     (tests
@@ -849,7 +899,7 @@ export const generateAnimationConfigs: (
                                     ? `viewportThreshold: ${trig.viewportThreshold},\n`
                                     : "") +
                                 (trig.timerData
-                                    ? `timerData: '${trig.timerData}',\n`
+                                    ? `timerData: ${trig.timerData},\n`
                                     : "") +
                                 `tests: [\n` +
                                 (trig.tests
@@ -887,7 +937,7 @@ export const generateAnimationConfigs: (
                                     ? `viewportThreshold: ${trig.viewportThreshold},\n`
                                     : "") +
                                 (trig.timerData
-                                    ? `timerData: '${trig.timerData}',\n`
+                                    ? `timerData: ${trig.timerData},\n`
                                     : "") +
                                 `tests: [\n` +
                                 (trig.tests
@@ -925,7 +975,7 @@ export const generateAnimationConfigs: (
                                     ? `viewportThreshold: ${trig.viewportThreshold},\n`
                                     : "") +
                                 (trig.timerData
-                                    ? `timerData: '${trig.timerData}',\n`
+                                    ? `timerData: ${trig.timerData},\n`
                                     : "") +
                                 `tests: [\n` +
                                 (trig.tests
@@ -979,6 +1029,11 @@ export const generateAnimationConfigs: (
                             `animation: ${uids
                                 .map(trigUid => `var(--nm-a-${trigUid})`)
                                 .join(",")}\n` +
+                            (hasTimeline
+                                ? `;\nanimation-timeline: ${uids
+                                      .map(trigUid => `var(--nm-t-${trigUid})`)
+                                      .join(",")}\n`
+                                : "") +
                             `}\n`
 
                     for (let i = 0; i < remaining.length; i++) {
@@ -1000,6 +1055,9 @@ export const generateAnimationConfigs: (
                                 `nima-${anim.name}.nm-a-${trigUid}`,
                             )} {\n` +
                             `animation: var(--nm-a-${trigUid})\n` +
+                            (hasTimeline
+                                ? `;\nanimation-timeline: var(--nm-t-${trigUid})\n`
+                                : "") +
                             `}\n`
                     })
                 }

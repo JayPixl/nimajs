@@ -393,6 +393,18 @@ export function loadNimaEngine() {
                                 trigger.startTrigger,
                                 () => {
                                     elem.classList.add(`nm-a-${trigger.uid}`)
+                                    trigger.endTriggers.map((endTrig, i) => {
+                                        registerEventCallback(
+                                            endTrig,
+                                            () => {
+                                                elem.classList.remove(
+                                                    `nm-a-${trigger.uid}`,
+                                                )
+                                            },
+                                            endTriggerElems[i]!,
+                                            false,
+                                        )
+                                    })
                                 },
                                 startTriggerElems,
                                 true,
@@ -421,17 +433,6 @@ export function loadNimaEngine() {
                         )[] = []
                         trigger.resumeTriggers.map(trig => {
                             resumeTriggerElems.push(initializeTrigElems(trig))
-                        })
-
-                        trigger.endTriggers.map((endTrig, i) => {
-                            registerEventCallback(
-                                endTrig,
-                                () => {
-                                    elem.classList.remove(`nm-a-${trigger.uid}`)
-                                },
-                                endTriggerElems[i]!,
-                                true,
-                            )
                         })
 
                         trigger.pauseTriggers.map((pauseTrig, i) => {

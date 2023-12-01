@@ -59,8 +59,7 @@ export const startEngine: (
         if (options.minifyCSS) {
             try {
                 const res = await postcss([
-                    autoprefixer,
-                    cssnano({ preset: "default" }),
+                    cssnano({ preset: "default", plugins: [autoprefixer] }),
                 ]).process(styles, { from: undefined })
                 styles = res.css
             } catch (e) {

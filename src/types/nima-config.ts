@@ -79,7 +79,7 @@ export interface NimaMotionConfig {
     /**
      * Not yet functional
      */
-    timeline?: `view<${string}>` | `scroll<${string}>` | "auto"
+    timeline?: `view(${string})` | `scroll(${string})` | "auto"
 }
 
 /* Properties */

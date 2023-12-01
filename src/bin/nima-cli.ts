@@ -7,6 +7,7 @@ import { startEngine } from "../utils/start-engine.js"
 import chokidar from "chokidar"
 import { getWatcherDirs } from "../utils/get-watcher-dirs.js"
 import { NimaBuildOptions } from "../types/cli.js"
+import { cliHelp } from "../utils/cli-help.js"
 
 const args = process.argv.slice(2)
 
@@ -33,7 +34,9 @@ fancyLog("", "header")
 // }
 
 try {
-    if (args[0] === "init") {
+    if (args.indexOf("--help") !== -1) {
+        cliHelp()
+    } else if (args[0] === "init") {
         let targetFormat: "ts" | "js" | "json" = "js"
         let outputDir: string | undefined = "./"
         if (args.indexOf("--ts") !== -1) {
