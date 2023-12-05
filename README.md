@@ -1,4 +1,6 @@
-# Nima
+<img src="./static/nima_logo_animated.gif" style="width: 100%">
+
+<br>
 
 Nima is a versatile trigger-based animation engine that is able to be used across many development environments including React and even vanilla HTML by harnessing the power of native browser keyframes animations.
 

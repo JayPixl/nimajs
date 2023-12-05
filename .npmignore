@@ -7,3 +7,4 @@ dev.js
 .prettierignore
 CONTRIBUTING.md
 tsconfig.json
+static
