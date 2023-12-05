@@ -142,6 +142,8 @@ export const nimaAnimatableProperties = [
     "right",
     "rotate",
     "scale",
+    "stroke-dasharray",
+    "stroke-dashoffset",
     "text-decoration-color",
     "text-indent",
     "text-shadow",

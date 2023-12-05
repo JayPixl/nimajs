@@ -802,7 +802,7 @@ export const generateAnimationConfigs: (
                     } var(--nm-p-${trigUid}) nm-k-${motion.uid}`
 
                     if (getTimeValue(motion.props.stagger) !== "0s") {
-                        delays += `nm-d-${motion.uid}: 0s;\n`
+                        delays += `--nm-d-${motion.uid}: 0s;\n`
                         staggers +=
                             `{\n` +
                             `uid: '${motion.uid}',\n` +

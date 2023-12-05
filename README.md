@@ -60,7 +60,7 @@ animations: [
                 duration: 300, // Duration of 300ms
                 fill: "forwards", // Keep the end state of the animation
                 iterations: 1, // Only run this animation once
-                endTrigger: "mouseleave", // End this animaation on mouseleave
+                endTriggers: ["mouseleave"], // End this animaation on mouseleave
             },
             click: {
                 // On click, run this animation
@@ -68,7 +68,7 @@ animations: [
                 duration: 200, // Duration of 200ms
                 iterations: 1, // Only one iteration
                 easing: "linear", // Use the "linear" easing function
-                endTrigger: "timer<200ms>", // End after 200ms so you can click again
+                endTriggers: ["timer<200ms>"], // End after 200ms so you can click again
             },
             mouseleave: {
                 // On mouse leave, run this animation
@@ -76,7 +76,7 @@ animations: [
                 duration: 300, // Duration of 300ms
                 fill: "forwards", // Keep the end state of the animation
                 iterations: 1, // Only run this animation once
-                endTrigger: "mouseenter", // End this animaation on mouseenter
+                endTriggers: ["mouseenter"], // End this animaation on mouseenter
             },
         },
     },
@@ -136,6 +136,8 @@ return (
 ```
 
 Congrats! You created your first Nima animation! 🎉
+
+![click demo](./static/click_demo.gif)
 
 ## CLI Reference
 
