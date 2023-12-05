@@ -1,4 +1,4 @@
-<img src="./static/nima_logo_animated.gif" style="width: 100%">
+<img src="./static/nima_logo_animated.gif" style="width: 100%;"></img>
 
 <br>
 
